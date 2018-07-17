@@ -2,10 +2,10 @@
 
 import rospy
 from geometry_msgs.msg import PoseStamped
+from std_msgs.msg import Int32
 from styx_msgs.msg import Lane, Waypoint
 from scipy.spatial import KDTree
 import numpy as np
-
 import math
 
 '''
@@ -23,6 +23,7 @@ as well as to verify your TL classifier.
 '''
 
 LOOKAHEAD_WPS = 200  # Number of waypoints we will publish. You can change this number
+MAX_DECEL = 1.0
 
 
 class WaypointUpdater(object):
@@ -31,6 +32,7 @@ class WaypointUpdater(object):
 
         rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
         rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
+        rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb)
 
         # TODO: Add a subscriber for /traffic_waypoint and /obstacle_waypoint below
 
@@ -41,16 +43,15 @@ class WaypointUpdater(object):
         self.base_waypoints = None
         self.waypoints_2d = None
         self.waypoint_tree = None
+        self.stopline_wp_idx = -1
 
         self.loop()
-        rospy.spin()
 
     def loop(self):
         rate = rospy.Rate(50)
         while not rospy.is_shutdown():
             if self.pose and self.base_waypoints:
-                closest_id = self.get_closest_waypoint_id()
-                self.publish_waypoints(closest_id)
+                self.publish_waypoints()
             rate.sleep()
 
     def pose_cb(self, msg):
@@ -67,8 +68,7 @@ class WaypointUpdater(object):
             self.waypoint_tree = KDTree(self.waypoints_2d)
 
     def traffic_cb(self, msg):
-        # TODO: Callback for /traffic_waypoint message. Implement
-        pass
+        self.stopline_wp_idx = msg.data
 
     def obstacle_cb(self, msg):
         # TODO: Callback for /obstacle_waypoint message. We will implement it later
@@ -105,11 +105,41 @@ class WaypointUpdater(object):
 
         return closest_id
 
-    def publish_waypoints(self, closest_id):
-        lane = Lane()
-        lane.header = self.base_waypoints.header
-        lane.waypoints = self.base_waypoints.waypoints[closest_id: closest_id + LOOKAHEAD_WPS]
+    def publish_waypoints(self):
+        lane = self.generate_lane()
         self.final_waypoints_pub.publish(lane)
+
+    def generate_lane(self):
+        lane = Lane()
+
+        closest_idx = self.get_closest_waypoint_id()
+        farthest_idx = closest_idx + LOOKAHEAD_WPS
+        waypoints = self.base_waypoints.waypoints[closest_idx:farthest_idx]
+
+        if self.stopline_wp_idx == -1 or (self.stopline_wp_idx >= farthest_idx):
+            lane.waypoints = waypoints
+        else:
+            lane.waypoints = self.decelerate_waypoints(waypoints, closest_idx)
+
+        return lane
+
+    def decelerate_waypoints(self, waypoints, closest_idx):
+        result = []
+        for i, wp in enumerate(waypoints):
+            new_point = Waypoint()
+            new_point.pose = wp.pose
+
+            stop_idx = max(self.stopline_wp_idx - closest_idx - 2, 0)  # Two waypints back from line so the front of
+            # the car stops at the line
+            dist = self.distance(waypoints, i, stop_idx)
+            vel = math.sqrt(2 * MAX_DECEL * dist)
+            if vel < 1.0:
+                vel = 0.0
+
+            new_point.twist.twist.linear.x = min(vel, wp.twist.twist.linear.x)
+            result.append(new_point)
+
+        return result
 
 
 if __name__ == '__main__':

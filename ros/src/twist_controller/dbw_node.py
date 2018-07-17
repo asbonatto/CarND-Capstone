@@ -31,22 +31,23 @@ that we have created in the `__init__` function.
 
 '''
 
+
 class DBWNode(object):
     def __init__(self):
         rospy.init_node('dbw_node')
 
         car_parameters = {
-            "vehicle_mass" : rospy.get_param('~vehicle_mass', 1736.35),
-            "fuel_capacity" : rospy.get_param('~fuel_capacity', 13.5),
-            "brake_deadband" : rospy.get_param('~brake_deadband', .1),
-            "decel_limit" : rospy.get_param('~decel_limit', -5),
-            "accel_limit" : rospy.get_param('~accel_limit', 1.),
-            "wheel_radius" : rospy.get_param('~wheel_radius', 0.2413),
-            "wheel_base" : rospy.get_param('~wheel_base', 2.8498),
-            "steer_ratio" : rospy.get_param('~steer_ratio', 14.8),
-            "max_lat_accel" : rospy.get_param('~max_lat_accel', 3.),
-            "max_steer_angle" : rospy.get_param('~max_steer_angle', 8.),
-            "min_speed" : 0.1}
+            "vehicle_mass": rospy.get_param('~vehicle_mass', 1736.35),
+            "fuel_capacity": rospy.get_param('~fuel_capacity', 13.5),
+            "brake_deadband": rospy.get_param('~brake_deadband', .1),
+            "decel_limit": rospy.get_param('~decel_limit', -5),
+            "accel_limit": rospy.get_param('~accel_limit', 1.),
+            "wheel_radius": rospy.get_param('~wheel_radius', 0.2413),
+            "wheel_base": rospy.get_param('~wheel_base', 2.8498),
+            "steer_ratio": rospy.get_param('~steer_ratio', 14.8),
+            "max_lat_accel": rospy.get_param('~max_lat_accel', 3.),
+            "max_steer_angle": rospy.get_param('~max_steer_angle', 8.),
+            "min_speed": 0.1}
 
         self.steer_pub = rospy.Publisher('/vehicle/steering_cmd',
                                          SteeringCmd, queue_size=1)
@@ -67,7 +68,7 @@ class DBWNode(object):
         # Initializing the controller
         self.controller = Controller(**car_parameters)
 
-       # Subscribe to all the topics you need to
+        # Subscribe to all the topics you need to
         rospy.Subscriber('/twist_cmd', TwistStamped, self.twist_cb, queue_size=1)
         rospy.Subscriber('/current_velocity', TwistStamped, self.velocity_cb, queue_size=1)
         rospy.Subscriber('/vehicle/dbw_enabled', Bool, self.dbw_enabled_cb, queue_size=1)
@@ -75,9 +76,9 @@ class DBWNode(object):
         self.loop()
 
     def loop(self):
-        rate = rospy.Rate(50) # 50Hz
+        rate = rospy.Rate(50)  # 50Hz
         while not rospy.is_shutdown():
-            
+
             # Getting elapsed time from last call
             timestamp = rospy.get_time()
             dt = timestamp - self.timestamp
@@ -87,7 +88,7 @@ class DBWNode(object):
 
             if self.dbw_enabled and valid_values:
                 throttle, brake, steering = self.controller.control(
-                    dbw_enabled = self.dbw_enabled,
+                    dbw_enabled=self.dbw_enabled,
                     twist_cmd=self.twist_cmd,
                     current_velocity=self.v,
                     dt=dt)
@@ -98,15 +99,14 @@ class DBWNode(object):
 
     def dbw_enabled_cb(self, msg):
         self.dbw_enabled = msg
-    
+
     def twist_cb(self, msg):
         self.v_ref = msg.twist.linear.x
         self.omega_ref = msg.twist.angular.z
         self.twist_cmd = msg
-        
 
     def velocity_cb(self, msg):
-        self.v = msg.twist.linear.x    
+        self.v = msg.twist.linear.x
 
     def publish(self, throttle, brake, steer):
         # Loggging ...

@@ -16,7 +16,7 @@ class Controller(object):
             yaw_param[key] = kwargs[key]
 
         self.yaw_controller = YawController(**yaw_param)
-        k = [x*0.1 for x in [1, 0.1, 0.001]] # PID coefficients
+        k = [x*5 for x in [1, 0.1, 0.001]] # PID coefficients
         output_range = [-0.5, 1.0]
         pid_param = k + output_range
         self.throttle_controller = PID(*pid_param)
@@ -55,8 +55,8 @@ class Controller(object):
         if throttle > 0:
             brake = 0
         else:
-            throttle = 0
             decel = -throttle
+            throttle = 0
             if decel < self.brake_deadband:
                 decel = 0.
             

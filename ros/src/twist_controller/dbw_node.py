@@ -110,7 +110,7 @@ class DBWNode(object):
 
     def publish(self, throttle, brake, steer):
         # Loggging ...
-        rospy.loginfo("CRTL Throttle : %f, Brake : %f, Steering : %f", throttle, brake, steer)
+        rospy.loginfo("CRTL T : %.2f, B : %.2f, S : %.2f", throttle, brake, steer)
 
         tcmd = ThrottleCmd()
         tcmd.enable = True

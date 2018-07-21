@@ -16,6 +16,7 @@ import time
 
 STATE_COUNT_THRESHOLD = 3
 WAYPOINT_LOOKAHEAD = 100
+SAVE_IMAGE = False
 
 
 class TLDetector(object):
@@ -87,7 +88,6 @@ class TLDetector(object):
         if self.image_counter == 0:
             return
 
-
         self.has_image = True
         self.camera_image = msg
         light_wp, state = self.process_traffic_lights()
@@ -152,14 +152,32 @@ class TLDetector(object):
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
 
         """
-        closest_light = None
-        line_wp_idx = None
 
         # List of positions that correspond to the line to stop in front of for a given intersection
         stop_line_positions = self.config['stop_line_positions']
         if self.pose:
             car_position = self.get_closest_waypoint(self.pose.pose.position.x, self.pose.pose.position.y)
+        else:
+            return -1, TrafficLight.UNKNOWN
 
+        closest_light, distance, line_wp_idx = self.get_closest_light_in_front(car_position, stop_line_positions)
+
+        if closest_light and distance < WAYPOINT_LOOKAHEAD:
+            state = self.get_light_state(closest_light)
+
+            if SAVE_IMAGE:
+                self.save_image(state)
+
+            return line_wp_idx, state
+
+        if SAVE_IMAGE:
+            self.save_image(3)
+
+        return -1, TrafficLight.UNKNOWN
+
+    def get_closest_light_in_front(self, car_position, stop_line_positions):
+        closest_light = None
+        line_wp_idx = None
         diff = len(self.waypoints.waypoints)
         for i, light in enumerate(self.lights):
             # Get stop line waypoint index
@@ -171,19 +189,13 @@ class TLDetector(object):
                 diff = distance
                 closest_light = light
                 line_wp_idx = temp_wp_idx
+        return closest_light, diff, line_wp_idx
 
-        if closest_light and diff < WAYPOINT_LOOKAHEAD:
-            state = self.get_light_state(closest_light)
-
-            # save image
-            path = "/home/student/CarND-Capstone/train_data/{}/{}.png".format(state, time.time())
-            cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
-            rospy.logwarn("save image " + str(state))
-            cv2.imwrite(path, cv_image)
-
-            return line_wp_idx, state
-
-        return -1, TrafficLight.UNKNOWN
+    def save_image(self, state):
+        path = "/home/student/CarND-Capstone/train_data/{}/{}.png".format(state, time.time())
+        cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
+        rospy.logwarn("save image " + str(state))
+        cv2.imwrite(path, cv_image)
 
 
 if __name__ == '__main__':

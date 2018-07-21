@@ -2,5 +2,6 @@
 
 build
 devel
+train_data/*
 
 profile.tmp

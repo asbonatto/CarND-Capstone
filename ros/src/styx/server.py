@@ -65,4 +65,18 @@ if __name__ == '__main__':
     app = socketio.Middleware(sio, app)
 
     # deploy as an eventlet WSGI server
-    eventlet.wsgi.server(eventlet.listen(('', 4567)), app)
+    #eventlet.wsgi.server(eventlet.listen(('', 4567)), app)
+    import socket
+    family = socket.AF_INET
+    backlog = 50
+    sock = socket.socket(family, socket.SOCK_STREAM)
+    sock.bind(('', 4567))
+    sock.listen(backlog)
+    eventlet.wsgi.server(sock, app)
+
+
+
+
+
+
+

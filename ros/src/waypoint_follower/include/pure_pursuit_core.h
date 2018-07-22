@@ -98,7 +98,7 @@ public:
     , initial_velocity_(5.0)
     , lookahead_distance_calc_ratio_(2.0)
     , minimum_lookahead_distance_(6.0)
-    , displacement_threshold_(0.1)
+    , displacement_threshold_(0.02)
     , relative_angle_threshold_(2.5)
     , waypoint_set_(false)
     , pose_set_(false)

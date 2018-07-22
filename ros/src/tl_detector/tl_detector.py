@@ -12,10 +12,8 @@ import cv2
 import yaml
 from scipy.spatial import KDTree
 
-import time
 
 STATE_COUNT_THRESHOLD = 3
-WAYPOINT_LOOKAHEAD = 100
 
 
 class TLDetector(object):
@@ -57,8 +55,6 @@ class TLDetector(object):
         self.waypoints_2d = None
         self.waypoint_tree = None
 
-        self.image_counter = 0
-
         rospy.spin()
 
     def pose_cb(self, msg):
@@ -72,7 +68,6 @@ class TLDetector(object):
 
     def traffic_cb(self, msg):
         self.lights = msg.lights
-        self.upcoming_red_light_pub.publish()
 
     def image_cb(self, msg):
         """Identifies red lights in the incoming camera image and publishes the index
@@ -82,12 +77,6 @@ class TLDetector(object):
             msg (Image): image from car-mounted camera
 
         """
-        # only process every 10th frame for performance
-        self.image_counter = (self.image_counter + 1) % 10
-        if self.image_counter == 0:
-            return
-
-
         self.has_image = True
         self.camera_image = msg
         light_wp, state = self.process_traffic_lights()
@@ -172,15 +161,8 @@ class TLDetector(object):
                 closest_light = light
                 line_wp_idx = temp_wp_idx
 
-        if closest_light and diff < WAYPOINT_LOOKAHEAD:
+        if closest_light:
             state = self.get_light_state(closest_light)
-
-            # save image
-            path = "/home/student/CarND-Capstone/train_data/{}/{}.png".format(state, time.time())
-            cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
-            rospy.logwarn("save image " + str(state))
-            cv2.imwrite(path, cv_image)
-
             return line_wp_idx, state
 
         return -1, TrafficLight.UNKNOWN

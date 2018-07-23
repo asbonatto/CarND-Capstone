@@ -22,7 +22,7 @@ as well as to verify your TL classifier.
 
 '''
 
-LOOKAHEAD_WPS = 200  # Number of waypoints we will publish. You can change this number
+LOOKAHEAD_WPS = 20  # Number of waypoints we will publish. You can change this number
 MAX_DECEL = 1.0
 
 

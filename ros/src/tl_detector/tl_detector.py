@@ -55,8 +55,8 @@ class TLDetector(object):
         self.light_classifier = TLClassifier()
         self.listener = tf.TransformListener()
 
-        self.state = TrafficLight.UNKNOWN
-        self.last_state = TrafficLight.UNKNOWN
+        self.state = TrafficLight.RED
+        self.last_state = TrafficLight.RED
         self.last_wp = -1
         self.state_count = 0
 
@@ -85,9 +85,9 @@ class TLDetector(object):
 
         """
         # only process every 10th frame for performance
-        self.image_counter = (self.image_counter + 1) % 10
-        if self.image_counter == 0:
-            return
+        #self.image_counter = (self.image_counter + 1) % 10
+        #if self.image_counter == 0:
+        #    return
 
         self.has_image = True
         self.camera_image = msg

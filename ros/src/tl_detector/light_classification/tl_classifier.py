@@ -42,17 +42,13 @@ class TLClassifier(object):
                 pred = self.model.predict(x)
                 pred = np.argmax(pred)
                 if pred == 0:
-                    rospy.logerr("Red light")
                     return TrafficLight.RED
                 elif pred == 1:
-                    rospy.logerr("Yellow light")
-                    return TrafficLight.YELLOWk
+                    return TrafficLight.YELLOW
                 elif pred == 2:
-                    rospy.logerr("Green light")
                     return TrafficLight.GREEN
                 else:
-                    rospy.logerr("Unknown light")
-                    return TrafficLight.UNKNOWNk
+                    return TrafficLight.UNKNOWN
         else:
             rospy.logerr("No model to predict traffic light state.")
         return TrafficLight.UNKNOWN

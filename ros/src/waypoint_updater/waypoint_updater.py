@@ -30,13 +30,10 @@ class WaypointUpdater(object):
     def __init__(self):
         rospy.init_node('waypoint_updater')
 
-        rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
-        rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
-        rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb)
+
 
         # TODO: Add a subscriber for /traffic_waypoint and /obstacle_waypoint below
 
-        self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
 
         # Attribute initialization
         self.pose = None
@@ -44,6 +41,12 @@ class WaypointUpdater(object):
         self.waypoints_2d = None
         self.waypoint_tree = None
         self.stopline_wp_idx = -1
+
+        rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
+        rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
+        rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb)
+        self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
+
 
         self.loop()
 
@@ -92,18 +95,19 @@ class WaypointUpdater(object):
         """
         Returns the index of the closest waypoint ahead of the vehicle
         """
+        if self.waypoint_tree:
+            pt = [self.pose.pose.position.x, self.pose.pose.position.y]
+            closest_id = self.waypoint_tree.query(pt, 1)[1]
 
-        pt = [self.pose.pose.position.x, self.pose.pose.position.y]
-        closest_id = self.waypoint_tree.query(pt, 1)[1]
+            closest_pt = np.array(self.waypoints_2d[closest_id])
+            prev_pt = np.array(self.waypoints_2d[closest_id - 1])
+            pt = np.array(pt)
+            value = np.dot(closest_pt - prev_pt, pt - closest_pt)
+            if value > 0:
+                closest_id = (closest_id + 1) % len(self.waypoints_2d)
 
-        closest_pt = np.array(self.waypoints_2d[closest_id])
-        prev_pt = np.array(self.waypoints_2d[closest_id - 1])
-        pt = np.array(pt)
-        value = np.dot(closest_pt - prev_pt, pt - closest_pt)
-        if value > 0:
-            closest_id = (closest_id + 1) % len(self.waypoints_2d)
-
-        return closest_id
+            return closest_id
+        return 0
 
     def publish_waypoints(self):
         lane = self.generate_lane()

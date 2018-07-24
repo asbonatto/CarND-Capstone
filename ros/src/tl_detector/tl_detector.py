@@ -13,7 +13,7 @@ import yaml
 from scipy.spatial import KDTree
 
 
-#Detector Stuff
+# Detector Stuff
 import os
 from cfg import *
 from mobiledet.utils import utils
@@ -52,6 +52,10 @@ class TLDetector(object):
 
         self.is_site = self.config['is_site']
 
+        #TODO Remove hack to force site mode or ground_truth for testing
+        self.is_site = True
+        self.ground_truth = False
+
         self.upcoming_red_light_pub = rospy.Publisher('/traffic_waypoint', Int32, queue_size=1)
 
         self.bridge = CvBridge()
@@ -65,11 +69,8 @@ class TLDetector(object):
 
         self.waypoints_2d = None
         self.waypoint_tree = None
-        
-        self.ground_truth = False
 
-
-        #Detector Stuff
+        # Detector Stuff
         self.model_image_size = None
         self.sess = None
         self.initialized = False
@@ -77,15 +78,15 @@ class TLDetector(object):
         anchors_path = os.path.expanduser('./model_data/lisa_anchors.txt')
         classes_path = os.path.expanduser('./model_data/lisa_classes.txt')
         
-        class_names  = utils.get_classes(classes_path)
+        self.class_names  = utils.get_classes(classes_path)
         anchors = utils.get_anchors(anchors_path)
         if SHALLOW_DETECTOR:
             anchors = anchors * 2
         
-        print(class_names)
+        print(self.class_names)
         print(anchors)
         
-        self.yolo_model, yolo_model_for_training = create_model(anchors, class_names, load_pretrained=True, 
+        self.yolo_model, yolo_model_for_training = create_model(anchors, self.class_names, load_pretrained=True, 
         feature_extractor=FEATURE_EXTRACTOR, pretrained_path=model_path, freeze_body=True)
 
         model_file_basename, file_extension = os.path.splitext(os.path.basename(model_path))
@@ -104,7 +105,7 @@ class TLDetector(object):
         self.sess = K.get_session()  # TODO: Remove dependence on Tensorflow session.
 
         # Generate output tensor targets for filtered bounding boxes.
-        self.yolo_outputs = decode_yolo_output(self.yolo_model.output, anchors, len(class_names))
+        self.yolo_outputs = decode_yolo_output(self.yolo_model.output, anchors, len(self.class_names))
 
         self.input_image_shape = K.placeholder(shape=(2, ))
         self.boxes, self.scores, self.classes = yolo_eval(
@@ -194,6 +195,21 @@ class TLDetector(object):
         # # Get classification
         # return self.light_classifier.get_classification(cv_image)
 
+    def classify_traffic_light(self):
+        """Determine the state of the traffic light in the scene (if any)
+           Using a VGG16 to classify.
+
+        Args:
+            None
+
+        Returns:
+            int: ID of traffic light color (specified in styx_msgs/TrafficLight)
+                 UNKNOWN if not found
+
+        """
+        # TODO return the actual detected state
+        return TrafficLight.UNKNOWN
+
     def detect_traffic_light(self):
         """Determine the state of the traffic light in the scene (if any)
            Using a Yolo_V2 network to detect and classify in a single step.
@@ -211,6 +227,10 @@ class TLDetector(object):
         # go=1        GREEN=2
         # warning=2   YELLOW=1
         # dontcare=3  UNKNOWN=4
+
+        getstate = dict(stop= 0, warning = 1, go = 2, dontcare = 4)
+
+        predicted_class = 'dontcare'
 
         if self.sess and self.initialized:
             cv_image = self.bridge.imgmsg_to_cv2(self.camera_image)
@@ -233,10 +253,18 @@ class TLDetector(object):
                     })
             last = (time.time() - start)
 
-            print('{}: Found {} boxes'.format(last, len(out_boxes)))
+            # print('{}: Found {} boxes'.format(last, len(out_boxes)))
 
-        # TODO return the actual detected state
-        return TrafficLight.UNKNOWN
+            for i, c in reversed(list(enumerate(out_classes))):
+                predicted_class = self.class_names[c]
+                box = out_boxes[i]
+                score = out_scores[i]
+                label = '{} {:.2f}'.format(predicted_class, score)
+            #     print(label)
+            # print(lightstate[predicted_class])
+
+        # Return the state of the class with the highest probability (if any), UNKNOWN otherise
+        return getstate[predicted_class]
 
     def process_traffic_lights(self):
         """Finds closest visible traffic light, if one exists, and determines its
@@ -271,8 +299,12 @@ class TLDetector(object):
             if closest_light:
                 state = self.get_light_state(closest_light)
                 return line_wp_idx, state
-        else:
+        elif self.is_site:
             state = self.detect_traffic_light()
+            if state != TrafficLight.UNKNOWN:
+                return line_wp_idx, state
+        else:
+            state = self.classify_traffic_light()
             if state != TrafficLight.UNKNOWN:
                 return line_wp_idx, state
 

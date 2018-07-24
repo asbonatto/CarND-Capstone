@@ -1,25 +1,69 @@
-# Self Driving Car Nanodegree - Capstone Project : System Integration
+# Self Driving Car Nanodegree - Capstone Project: System Integration
 
-## Team :
-* Jun Zhang, team lead
-* André Bonatto 
-* April O`Neil
-* Fabian Hertwig
+## Team Maple
+
+![carla](./imgs/carla.jpeg)
+
 
 ## Project objectives
 The objective of this project is to implement ROS-based core of an autonomous vehicle. The vehicle shall be able to complete a closed-circuit test-track, detecting the traffic lights and stopping whenever required. The code will be evaluated in a Unity simulator and a real-world Lincoln MKZ. More details on the project can be found [here](https://classroom.udacity.com/nanodegrees/nd013/parts/6047fe34-d93c-4f50-8336-b70ef10cb4b2/modules/e1a23b06-329a-4684-a717-ad476f0d8dff/lessons/462c933d-9f24-42d3-8bdc-a08a5fc866e4/concepts/5ab4b122-83e6-436d-850f-9f4d26627fd9).
 
 ### Specifications
-The car should :
-* Smoothly follow waypoints in the simulator.
+The car should:  
+
+* Smoothly follow waypoints in the simulator.  
 * Respect the target top speed set for the waypoints' twist.twist.linear.x in waypoint_loader.py. 
 * Stop at traffic lights when needed.
 * Stop and restart PID controllers depending on the state of /vehicle/dbw_enabled.
 * Publish throttle, steering, and brake commands at 50hz.
 
+
+## Team
+
+| ![Jun](./imgs/team/jun.jpeg)  | ![Andre](./imgs/team/andre.png)  |   ![April](./imgs/team/april.jpeg)| ![Fabian](./imgs/team/fabian.jpeg)|
+|:---:|:---:|:---:|:---:|
+| Jun Zhang, Team Lead, Senior Computer Vision Engineer at Aeryon Labs Inc, based in Waterloo, in Canada| André Bonatto |April Blaylock, Vision Systems Architect at Aeryon Labs Inc, based in Waterloo, Canada | Fabian Hertwig, Senior Data Scientist at MaibornWolff GmbH based in Munich, Germany
+
+
 ## ROS Architecture
 The autonomous driving system is composed of perception, planning and control. The modules communicate according to the following ROS structure of nodes and topics : 
 ![ROS Architecture](ros-architecture.png)
+
+
+## Perception
+We used two different deep learning models for the traffic light detection system. One is used in the simulator and the other on the test site. The obstacle detection system could be negleted. There are no obstacles either in the simulator nor on the test site.
+
+Carla has a camera mounted on its windshield. The simulator has a digital counterpart.
+
+![carlas camera](./imgs/carla_sdc_3.jpg)
+
+
+### Simulator
+
+At first we collected images from the cars camera with the current traffic light state to generate a training data set. The current traffic light state was provided by the simulator, but of course should not be used for the perception system and is not available at the test site.
+
+We collected about 7000 images with the traffic light states red, yellow, green or no visible traffic light.
+
+![red](./imgs/red.png) ![yellow](./imgs/yellow.png) ![green](./imgs/green.png) ![nolight](./imgs/nolight.png)
+
+We used this dataset to train a [VGG16 network](https://arxiv.org/abs/1409.1556) with pretrained weights on the imagenet dataset. The network classifies the whole image whenever the car is near a traffic light. This network achieved a very good accuracy of 99.4% on test data from the same dataset.
+
+### Site
+
+TODO
+
+![hood_classification](./imgs/408.jpg)
+![good_classification](./imgs/left0022.jpg)
+
+
+## Planning
+
+TODO
+
+## Control
+
+TODO
+
 
 ## Build Instructions 
 

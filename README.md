@@ -1,4 +1,27 @@
-This is the project repo for the final project of the Udacity Self-Driving Car Nanodegree: Programming a Real Self-Driving Car. For more information about the project, see the project introduction [here](https://classroom.udacity.com/nanodegrees/nd013/parts/6047fe34-d93c-4f50-8336-b70ef10cb4b2/modules/e1a23b06-329a-4684-a717-ad476f0d8dff/lessons/462c933d-9f24-42d3-8bdc-a08a5fc866e4/concepts/5ab4b122-83e6-436d-850f-9f4d26627fd9).
+# Self Driving Car Nanodegree - Capstone Project : System Integration
+
+## Team :
+* Jun Zhang, team lead
+* André Bonatto 
+* April O`Neil
+* Fabian Hertwig
+
+## Project objectives
+The objective of this project is to implement ROS-based core of an autonomous vehicle. The vehicle shall be able to complete a closed-circuit test-track, detecting the traffic lights and stopping whenever required. The code will be evaluated in a Unity simulator and a real-world Lincoln MKZ. More details on the project can be found [here](https://classroom.udacity.com/nanodegrees/nd013/parts/6047fe34-d93c-4f50-8336-b70ef10cb4b2/modules/e1a23b06-329a-4684-a717-ad476f0d8dff/lessons/462c933d-9f24-42d3-8bdc-a08a5fc866e4/concepts/5ab4b122-83e6-436d-850f-9f4d26627fd9).
+
+### Specifications
+The car should :
+* Smoothly follow waypoints in the simulator.
+* Respect the target top speed set for the waypoints' twist.twist.linear.x in waypoint_loader.py. 
+* Stop at traffic lights when needed.
+* Stop and restart PID controllers depending on the state of /vehicle/dbw_enabled.
+* Publish throttle, steering, and brake commands at 50hz.
+
+## ROS Architecture
+The autonomous driving system is composed of perception, planning and control. The modules communicate according to the following ROS structure of nodes and topics : 
+![ROS Architecture](ros-architecture.png)
+
+## Build Instructions 
 
 Please use **one** of the two installation options, either native **or** docker installation.
 
@@ -56,7 +79,23 @@ roslaunch launch/styx.launch
 ```
 4. Run the simulator
 
-### Real world testing
+## Testing the implementation
+
+### Drive-by-wire testing
+1. Download the [dbw bag](https://s3-us-west-1.amazonaws.com/udacity-selfdrivingcar/files/reference.bag.zip)
+2. Unzip the file to CarND-Capstone/ros and rename it to dbw_test.rosbag.bag
+3. source ros/devel/setup.sh
+4. roslaunch ros/src/twist_controller/launch/dbw_test.launch
+
+This will produce the files brakes.csv, steers.csv and throttles.csv, comparing the reference command with the current implementation.
+
+![Brakes](brakes.png)
+
+![Steering](steers.png)
+
+![Throttle](throttle.png)
+
+### Traffic light detection with real world images
 1. Download [training bag](https://s3-us-west-1.amazonaws.com/udacity-selfdrivingcar/traffic_light_bag_file.zip) that was recorded on the Udacity self-driving car.
 2. Unzip the file
 ```bash

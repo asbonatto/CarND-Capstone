@@ -20,6 +20,7 @@ from mobiledet.utils import utils
 from mobiledet.models.keras_yolo import yolo_eval, decode_yolo_output, create_model
 from keras import backend as K
 import time
+import tensorflow
 
 STATE_COUNT_THRESHOLD = 3
 
@@ -65,7 +66,7 @@ class TLDetector(object):
         self.waypoints_2d = None
         self.waypoint_tree = None
         
-        self.ground_truth = True
+        self.ground_truth = False
 
 
         #Detector Stuff
@@ -111,6 +112,8 @@ class TLDetector(object):
             self.input_image_shape,
             score_threshold=.6,
             iou_threshold=.6)
+
+        self.graph = tensorflow.get_default_graph()
 
         self.initialized = True
 
@@ -220,16 +223,17 @@ class TLDetector(object):
             image_data = np.expand_dims(image_data, 0)  # Add batch dimension.
 
             start = time.time()
-            out_boxes, out_scores, out_classes = self.sess.run(
-                [self.boxes, self.scores, self.classes],
-                feed_dict={
-                    self.yolo_model.input: image_data,
-                    self.input_image_shape: [width, height],
-                    K.learning_phase(): 0
-                })
+            with self.graph.as_default():
+                out_boxes, out_scores, out_classes = self.sess.run(
+                    [self.boxes, self.scores, self.classes],
+                    feed_dict={
+                        self.yolo_model.input: image_data,
+                        self.input_image_shape: [width, height],
+                        K.learning_phase(): 0
+                    })
             last = (time.time() - start)
 
-            print('{}: Found {} boxes for {}'.format(last, len(out_boxes), idx))
+            print('{}: Found {} boxes'.format(last, len(out_boxes)))
 
         # TODO return the actual detected state
         return TrafficLight.UNKNOWN

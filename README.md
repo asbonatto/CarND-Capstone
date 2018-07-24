@@ -22,7 +22,8 @@ The car should:
 
 | ![Jun](./imgs/team/jun.jpeg)  | ![Andre](./imgs/team/andre.png)  |   ![April](./imgs/team/april.jpeg)| ![Fabian](./imgs/team/fabian.jpeg)|
 |:---:|:---:|:---:|:---:|
-| Jun Zhang, Team Lead, Senior Computer Vision Engineer at Aeryon Labs Inc, based in Waterloo, in Canada| André Bonatto |April Blaylock, Vision Systems Architect at Aeryon Labs Inc, based in Waterloo, Canada | Fabian Hertwig, Senior Data Scientist at MaibornWolff GmbH based in Munich, Germany
+| Jun Zhang, Team Lead, Senior Computer Vision Engineer at Aeryon Labs Inc, based in Waterloo, in Canada| André Bonatto |April Blaylock, Vision Systems Architect at Aeryon Labs Inc, based in Waterloo, Canada | Fabian Hertwig, Senior Data Scientist at MaibornWolff GmbH based in Munich, Germany |
+|jzhang@aeryon.com|andre.s.bonatto@gmail.com|april@aeryon.com|fabian.hertwig@gmail.com|
 
 
 ## ROS Architecture

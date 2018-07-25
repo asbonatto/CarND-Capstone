@@ -71,12 +71,13 @@ class TLDetector(object):
         self.waypoints_2d = None
         self.waypoint_tree = None
 
-
+        self.vgg_model = None
+        self.sess = None
+        self.initialized = False
+        
         if self.is_site:
             # Detector Stuff
             self.model_image_size = None
-            self.sess = None
-            self.initialized = False
             model_path = os.path.expanduser('./weights/mobilenet_s2_best.FalseFalse.h5')
             anchors_path = os.path.expanduser('./model_data/lisa_anchors.txt')
             classes_path = os.path.expanduser('./model_data/lisa_classes.txt')
@@ -118,7 +119,6 @@ class TLDetector(object):
                 iou_threshold=.6)
 
             self.graph = tensorflow.get_default_graph()
-
         
         else:
             try:

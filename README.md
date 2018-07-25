@@ -50,12 +50,30 @@ We collected about 7000 images with the traffic light states red, yellow, green 
 We used this dataset to train a [VGG16 network](https://arxiv.org/abs/1409.1556) with pretrained weights on the imagenet dataset. The network classifies the whole image whenever the car is near a traffic light. This network achieved a very good accuracy of 99.4% on test data from the same dataset.
 
 ### Site
+For the traffic light detection in the real world, we designed a YOLOv2-MobileNet detector, where we replace the original backbone feature extraction networks of YOLOv2 to be MobileNet to speed up the inference performance. The implementaton of the detector can be found from here [MobileDet](https://github.com/darknight1900/MobileDet)
 
-TODO
+From most of the video other students shared online, the site test seems to always run in daytime so we only use 'daySequence1' and 'daySequence2' total 7000 images to train the detector. The training process is done with below 3 steps. 
 
-![hood_classification](./imgs/408.jpg)
-![good_classification](./imgs/left0022.jpg)
+#### 1. [LISA Traffic Light Dataset ](https://www.kaggle.com/mbornoe/lisa-traffic-light-dataset)
+The weights of MobileNet are initialized with the ImageNet weights and then we train the YOLOv2-MobileNet with about 200 epoches. After this stage, the detector could detect the test images from LISA dataset quite well. 
 
+#### 2. [Udacity Parking Lot Dataset](https://github.com/coldKnight/TrafficLight_Detection-TensorFlowAPI#get-the-dataset)
+There is a labelled UDacity parking lot dataset which has around 200 images, we fine tune the detector for this dataset for another 50 epochs and after that the detector can more or less detect the traffic lights, however there is lots of missing and false detection after this stage. Here is some examples. It is interesting to see from those two images that the detector is confused by the red color leaves of by the reflections. One of the reason that the poor detection performance is due to missing training data as only 200 training images are used.
+<figure>
+<img src="./imgs/YOLOv2-MobileNet/bad-frame000194.png" width="300">
+<img src="./imgs/YOLOv2-MobileNet/bad-frame000381.png" width="300">
+</figure>
+
+#### 3. Hard Negative Training 
+To address above issue, we log all the detection results and image file names to the csv file and manually update the labels so that all the false detection bounding boxes will be served as negative samples and we further train the detector for another 10 epochs. From below example images, we can see that in the spot the detector previously confused, it now can correctly know that this is not a traffic light but just a reflection. Note, the 'donotcare' label is the negative training label. 
+<figure>
+<img src="./imgs/YOLOv2-MobileNet/good-frame000219.png" width="300">
+<img src="./imgs/YOLOv2-MobileNet/good-frame000336.png" width="300">
+</figure>
+However, once a while the detector might still confuse a red leave with red lights. 
+<figure>
+<img src="./imgs/YOLOv2-MobileNet/still-bad-frame000183.png" width="300">
+</figure>
 
 ## Planning
 

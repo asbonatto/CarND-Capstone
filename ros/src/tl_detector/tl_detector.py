@@ -70,11 +70,10 @@ class TLDetector(object):
 
         self.waypoints_2d = None
         self.waypoint_tree = None
-
         self.vgg_model = None
         self.sess = None
         self.initialized = False
-        
+      
         if self.is_site:
             # Detector Stuff
             self.model_image_size = None
@@ -90,23 +89,13 @@ class TLDetector(object):
             print(self.class_names)
             print(anchors)
             
-            self.yolo_model, yolo_model_for_training = create_model(anchors, self.class_names, load_pretrained=True, 
+            self.yolo_model, _ = create_model(anchors, self.class_names, load_pretrained=True, 
             feature_extractor=FEATURE_EXTRACTOR, pretrained_path=model_path, freeze_body=True)
-
-            model_file_basename, file_extension = os.path.splitext(os.path.basename(model_path))
-
-            model_input = self.yolo_model.input.name.replace(':0', '') # input_1
-            model_output = self.yolo_model.output.name.replace(':0', '') # conv2d_3/BiasAdd
-
-            sess = K.get_session()
-            width, height, channels = int(self.yolo_model.input.shape[2]), int(self.yolo_model.input.shape[1]), int(self.yolo_model.input.shape[3])
-
-            # END OF keras specific code
 
             # Check if model is fully convolutional, assuming channel last order.
             self.model_image_size = self.yolo_model.layers[0].input_shape[1:3]
 
-            self.sess = K.get_session()  # TODO: Remove dependence on Tensorflow session.
+            self.sess = K.get_session()  
 
             # Generate output tensor targets for filtered bounding boxes.
             self.yolo_outputs = decode_yolo_output(self.yolo_model.output, anchors, len(self.class_names))
@@ -119,7 +108,6 @@ class TLDetector(object):
                 iou_threshold=.6)
 
             self.graph = tensorflow.get_default_graph()
-        
         else:
             try:
                 model_path = os.path.expanduser('./weights/vgg16_1.h5')

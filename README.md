@@ -22,7 +22,7 @@ The car should:
 
 | ![Jun](./imgs/team/jun.jpeg)  | ![Andre](./imgs/team/andre.png)  |   ![April](./imgs/team/april.jpeg)| ![Fabian](./imgs/team/fabian.jpeg)|
 |:---:|:---:|:---:|:---:|
-| Jun Zhang, Team Lead, Senior Computer Vision Engineer at Aeryon Labs Inc, based in Waterloo, in Canada| André Bonatto |April Blaylock, Vision Systems Architect at Aeryon Labs Inc, based in Waterloo, Canada | Fabian Hertwig, Senior Data Scientist at MaibornWolff GmbH based in Munich, Germany |
+| Jun Zhang, Team Lead, Senior Computer Vision Engineer at Aeryon Labs Inc, based in Waterloo, in Canada| André Bonatto, Credit Portfolio Specialist at Itaú Unibanco SA, based in São Paulo, Brazil |April Blaylock, Vision Systems Architect at Aeryon Labs Inc, based in Waterloo, Canada | Fabian Hertwig, Senior Data Scientist at MaibornWolff GmbH based in Munich, Germany |
 |jzhang@aeryon.com|andre.s.bonatto@gmail.com|april@aeryon.com|fabian.hertwig@gmail.com|
 
 
@@ -51,19 +51,24 @@ We used this dataset to train a [VGG16 network](https://arxiv.org/abs/1409.1556)
 
 ### Site
 
-TODO
-
 ![hood_classification](./imgs/408.jpg)
 ![good_classification](./imgs/left0022.jpg)
 
 
 ## Planning
 
-TODO
+The objective of the planning module is to specify target speeds based on mission requirements, road map and scene obstacles. In this project the goal is to keep the center lane, respect the speed limit and stop in the red traffic lights. 
+To accomplish this, the planner sets the speed limit as the target speed for each of the waypoints whenever there isn't an obstacle ahea. When a red traffic light is detected, the planner adjusts the speed with piecewise constant deceleration. To prevent excessive jerk, we used a safety factor of 90%.
 
 ## Control
 
-TODO
+Per requirements, the control module must publish throttle, steering angle and brake torque at 50 Hz. To accomplish this, an  yaw controller provides the steering angle that matches the target linear and angular speeds, taking into account the current linear speed of the vehicle.
+
+The linear speed of the vehicle is controlled with a classic digital PID controller. To avoid any kind of aliasing, the speed tracking error is filtered with a single pole low-pass filter and then fed to the controller.
+
+The controller signal is limited to the vehicle acceleration and deceleration limits. If the control command signals acceleration,the value is sent to the throttle as is. To avoid braking overuse and excessive jerk, the control is configured to first stop sending throttle signals and start actively braking the car only if the required force exceeds the brake deadband. Due to the asymptotic nature of PID control, we need to force a full stop with the parking torque of 700 N.m whenever the speed of vehicle falls below a threshold.
+
+Since the reference signal is relatively smooth, an automatic tuning process was not needed. The manual tuning started with adjusting the proportional gains and comparing it against the first seconds of the reference implementation. The other two components were adjusted with a manual process of minimizing the root mean squared error between the reference implementation and the output. The final result of this process in shown in [Drive-by-wire testing](#Drive-by-wire-testing)
 
 
 ## Build Instructions 

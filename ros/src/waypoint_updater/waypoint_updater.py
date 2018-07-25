@@ -24,7 +24,8 @@ as well as to verify your TL classifier.
 
 LOOKAHEAD_WPS = 200  # Number of waypoints we will publish. You can change this number
 MAX_DECEL = 1.0
-
+MPS2MPH = 2.236936
+SAFETY_FACTOR = 0.90
 
 class WaypointUpdater(object):
     def __init__(self):
@@ -34,8 +35,6 @@ class WaypointUpdater(object):
         rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
         rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb)
 
-        # TODO: Add a subscriber for /traffic_waypoint and /obstacle_waypoint below
-
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
 
         # Attribute initialization
@@ -44,6 +43,8 @@ class WaypointUpdater(object):
         self.waypoints_2d = None
         self.waypoint_tree = None
         self.stopline_wp_idx = -1
+        self.speed_limit = rospy.get_param('/waypoint_loader/velocity') / 3.6
+        rospy.loginfo("Speed limit set to %.2f MPH", self.speed_limit*MPS2MPH)
 
         self.loop()
 
@@ -132,7 +133,7 @@ class WaypointUpdater(object):
             stop_idx = max(self.stopline_wp_idx - closest_idx - 2, 0)  # Two waypints back from line so the front of
             # the car stops at the line
             dist = self.distance(waypoints, i, stop_idx)
-            vel = math.sqrt(2 * MAX_DECEL * dist)
+            vel = math.sqrt(2 * MAX_DECEL * SAFETY_FACTOR * dist)
             if vel < 1.0:
                 vel = 0.0
 

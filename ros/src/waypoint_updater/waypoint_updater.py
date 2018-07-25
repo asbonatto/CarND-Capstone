@@ -51,7 +51,7 @@ class WaypointUpdater(object):
     def loop(self):
         rate = rospy.Rate(50)
         while not rospy.is_shutdown():
-            if self.pose and self.base_waypoints:
+            if self.pose and self.base_waypoints and self.waypoint_tree:
                 self.publish_waypoints()
             rate.sleep()
 
@@ -107,6 +107,8 @@ class WaypointUpdater(object):
         return closest_id
 
     def publish_waypoints(self):
+        if not self.base_waypoints:
+            return
         lane = self.generate_lane()
         self.final_waypoints_pub.publish(lane)
 

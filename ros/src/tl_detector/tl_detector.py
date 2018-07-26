@@ -88,10 +88,7 @@ class TLDetector(object):
             anchors = utils.get_anchors(anchors_path)
             if SHALLOW_DETECTOR:
                 anchors = anchors * 2
-            
-            print(self.class_names)
-            print(anchors)
-            
+                        
             self.yolo_model, _ = create_model(anchors, self.class_names, load_pretrained=True, 
             feature_extractor=FEATURE_EXTRACTOR, pretrained_path=model_path, freeze_body=True)
 
@@ -118,7 +115,7 @@ class TLDetector(object):
                 self.graph = tensorflow.get_default_graph()
             except:
                 rospy.logerr(
-                    "Could not load model. Have you downloaded the vgg16_1.h5 file to the weights folder? You can download it here: hhtps://s3-eu-west-1.amazonaws.com/sdcnddata/vgg_16_1.h5")
+                    "Could not load model. Have you downloaded the vgg16_1.h5 file to the weights folder? You can download it here: https://s3-eu-west-1.amazonaws.com/sdcnddata/vgg16_1.h5")
 
 
         self.initialized = True
@@ -276,15 +273,15 @@ class TLDetector(object):
                         K.learning_phase(): 0
                     })
             last = (time.time() - start)
-
+            
             print('{}: Found {} boxes'.format(last, len(out_boxes)))
 
             for i, c in reversed(list(enumerate(out_classes))):
                 predicted_class = self.class_names[c]
                 box = out_boxes[i]
                 score = out_scores[i]
-                label = '{} {:.2f}'.format(predicted_class, score)
-                print(label)
+                # label = '{} {:.2f}'.format(predicted_class, score)
+                # print(label)
             # print(lightstate[predicted_class])
 
         # Return the state of the class with the highest probability (if any), UNKNOWN otherise

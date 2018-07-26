@@ -77,7 +77,9 @@ However, once a while the detector might still confuse a red leave with red ligh
 
 ## Planning
 
-TODO
+The waypoint planner incorporates the information from the traffic light detection node  and the base waypoints and the car's pose to form a final waypoint trajectory.  The final trajectory is a list of waypoints with target velocities for the car to follow in the control block.
+
+If any traffic lights are detected the traffic_cb will contain a valid stop line waypoint in front of the vehicle.  If this stopline is within the lookahead distance, a geometric deceleration trajectory is calculated that is ensured not to exceed the maximum accelleration and jerk contraints. If no red traffic lights are detected the planner will simply return the base waypoints to follow.
 
 ## Control
 

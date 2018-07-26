@@ -54,7 +54,7 @@ class TLDetector(object):
         self.is_site = self.config['is_site']
 
         #TODO Remove hack to force site mode or ground_truth for testing
-        #self.is_site = True
+        # self.is_site = True
         self.ground_truth = False
 
         self.upcoming_red_light_pub = rospy.Publisher('/traffic_waypoint', Int32, queue_size=1)
@@ -76,11 +76,12 @@ class TLDetector(object):
             self.model_image_size = None
             self.sess = None
             self.initialized = False
-            model_path = os.path.expanduser('./weights/mobilenet_s2_best.FalseFalse.h5')
+            model_path = os.path.expanduser('./weights/parking_lot.h5')
             anchors_path = os.path.expanduser('./model_data/lisa_anchors.txt')
             classes_path = os.path.expanduser('./model_data/lisa_classes.txt')
             
             self.class_names  = utils.get_classes(classes_path)
+ 
             anchors = utils.get_anchors(anchors_path)
             if SHALLOW_DETECTOR:
                 anchors = anchors * 2
@@ -245,12 +246,12 @@ class TLDetector(object):
         # warning=2   YELLOW=1
         # dontcare=3  UNKNOWN=4
 
-        getstate = dict(stop =     TrafficLight.RED,
-                        warning =  TrafficLight.YELLOW, 
-                        go =       TrafficLight.GREEN, 
-                        dontcare = TrafficLight.UNKNOWN)
+        getstate = {"stop" :     TrafficLight.RED,
+                    "warning" :  TrafficLight.YELLOW, 
+                    "go" :       TrafficLight.GREEN, 
+                    "donotcare" : TrafficLight.UNKNOWN }
 
-        predicted_class = 'dontcare'
+        predicted_class = "donotcare"
 
         if self.sess and self.initialized:
             cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
@@ -273,14 +274,14 @@ class TLDetector(object):
                     })
             last = (time.time() - start)
 
-            # print('{}: Found {} boxes'.format(last, len(out_boxes)))
+            print('{}: Found {} boxes'.format(last, len(out_boxes)))
 
             for i, c in reversed(list(enumerate(out_classes))):
                 predicted_class = self.class_names[c]
                 box = out_boxes[i]
                 score = out_scores[i]
                 label = '{} {:.2f}'.format(predicted_class, score)
-            #     print(label)
+                print(label)
             # print(lightstate[predicted_class])
 
         # Return the state of the class with the highest probability (if any), UNKNOWN otherise

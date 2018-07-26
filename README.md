@@ -75,6 +75,10 @@ However, once a while the detector might still confuse a red leave with red ligh
 <img src="./imgs/YOLOv2-MobileNet/still-bad-frame000183.png" width="300">
 </figure>
 
+#### 4. Test with site rosbag video
+Below is the results we test against UDacity parking lot images. 
+
+[Youtube video](https://youtu.be/c4S1ngv-dPo)
 ## Planning
 
 The objective of the planning module is to specify target speeds based on mission requirements, road map and scene obstacles. In this project the goal is to keep the center lane, respect the speed limit and stop in the red traffic lights. 
@@ -154,7 +158,7 @@ roslaunch launch/styx.launch
 ## Testing the implementation
 
 ### Drive-by-wire testing
-1. Download the [dbw bag](https://s3-us-west-1.amazonaws.com/udacity-selfdrivingcar/files/reference.bag.zip)
+1. Download the [dbw bag](https://drive.google.com/open?id=1utQo2NRsFZr9mjTw6H7w0DMCB-g3xoTc)
 2. Unzip the file to CarND-Capstone/ros and rename it to dbw_test.rosbag.bag
 3. source ros/devel/setup.sh
 4. roslaunch ros/src/twist_controller/launch/dbw_test.launch
@@ -175,7 +179,7 @@ unzip traffic_light_bag_file.zip
 ```
 3. Play the bag file
 ```bash
-rosbag play -l traffic_light_bag_file/traffic_light_training.bag
+rosbag play -l udacity_succesful_light_detection.bag
 ```
 4. Launch your project in site mode
 ```bash

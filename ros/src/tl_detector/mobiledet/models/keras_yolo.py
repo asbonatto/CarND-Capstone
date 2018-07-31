@@ -157,8 +157,7 @@ def yolo_body_mobilenet(inputs, num_anchors, num_classes, weights='imagenet', ne
     feature_model = Model(inputs=feature_model.input, outputs=feature_model.layers[final_feature_layer].output)
 
     if weights == 'imagenet':
-        print('Loading pretrained weights from ImageNet...')
-        trained_model = MobileNet(input_shape=(224, 224, 3), include_top=False, weights='imagenet')
+        trained_model = MobileNet(input_shape=(224, 224, 3), include_top=False, weights=None)
         trained_layers = trained_model.layers
         feature_layers = feature_model.layers
         for i in range(0, min(len(feature_layers), len(trained_layers))):

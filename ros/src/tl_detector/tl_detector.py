@@ -71,14 +71,13 @@ class TLDetector(object):
         self.waypoints_2d = None
         self.waypoint_tree = None
         self.vgg_model = None
+        self.graph = None
         self.sess = None
         self.initialized = False
-      
+
         if self.is_site:
             # Detector Stuff
             self.model_image_size = None
-            self.sess = None
-            self.initialized = False
             model_path = os.path.expanduser('./weights/parking_lot.h5')
             anchors_path = os.path.expanduser('./model_data/lisa_anchors.txt')
             classes_path = os.path.expanduser('./model_data/lisa_classes.txt')
@@ -210,7 +209,7 @@ class TLDetector(object):
                  UNKNOWN if not found
 
         """
-        if self.vgg_model and self.initialized:
+        if self.vgg_model and self.initialized and self.camera_image and self.graph:
             cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
             with self.graph.as_default():
                 x = cv2.resize(src=cv_image, dsize=(256, 256))
@@ -253,7 +252,7 @@ class TLDetector(object):
 
         predicted_class = "donotcare"
 
-        if self.sess and self.initialized:
+        if self.sess and self.initialized and self.camera_image and self.graph:
             cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
             # resized_image = cv_image.resize(
             #     tuple(reversed(self.model_image_size)))
@@ -296,15 +295,14 @@ class TLDetector(object):
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
 
         """
-
-        if self.waypoint_tree:
+        if self.pose and self.waypoints and self.waypoint_tree:
             closest_light = None
             line_wp_idx = None
 
             # List of positions that correspond to the line to stop in front of for a given intersection
             stop_line_positions = self.config['stop_line_positions']
-            if self.pose:
-                car_position = self.get_closest_waypoint(self.pose.pose.position.x, self.pose.pose.position.y)
+
+            car_position = self.get_closest_waypoint(self.pose.pose.position.x, self.pose.pose.position.y)
 
             diff = len(self.waypoints.waypoints)
             for i, light in enumerate(self.lights):

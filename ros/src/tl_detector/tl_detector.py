@@ -254,6 +254,7 @@ class TLDetector(object):
 
         if self.sess and self.initialized and self.camera_image and self.graph:
             cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
+            cv_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
             # resized_image = cv_image.resize(
             #     tuple(reversed(self.model_image_size)))
             height, width, channels = cv_image.shape
@@ -273,14 +274,14 @@ class TLDetector(object):
                     })
             last = (time.time() - start)
             
-            print('{}: Found {} boxes'.format(last, len(out_boxes)))
+            # print('{}: Found {} boxes'.format(last, len(out_boxes)))
 
             for i, c in reversed(list(enumerate(out_classes))):
                 predicted_class = self.class_names[c]
                 box = out_boxes[i]
                 score = out_scores[i]
-                # label = '{} {:.2f}'.format(predicted_class, score)
-                # print(label)
+                label = 'detector: {} {:.2f}'.format(predicted_class, score)
+                print(label)
             # print(lightstate[predicted_class])
 
         # Return the state of the class with the highest probability (if any), UNKNOWN otherise
@@ -295,6 +296,8 @@ class TLDetector(object):
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
 
         """
+        
+
         if self.pose and self.waypoints and self.waypoint_tree:
             closest_light = None
             line_wp_idx = None
@@ -325,6 +328,11 @@ class TLDetector(object):
                 if state != TrafficLight.UNKNOWN:
                     return line_wp_idx, state
             else:
+                if not self.pose:
+                    print('xxxxxxxxxxxxxxx')
+                # print(self.pose)
+                # print(self.waypoints)
+                # print(self.waypoint_tree)
                 state = self.classify_traffic_light()
                 if state != TrafficLight.UNKNOWN:
                     return line_wp_idx, state

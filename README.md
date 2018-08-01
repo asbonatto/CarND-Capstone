@@ -172,7 +172,7 @@ This will produce the files brakes.csv, steers.csv and throttles.csv, comparing 
 ![Throttle](throttle.png)
 
 ### Traffic light detection with real world images
-1. Download [training bag](https://s3-us-west-1.amazonaws.com/udacity-selfdrivingcar/traffic_light_bag_file.zip) that was recorded on the Udacity self-driving car.
+1. Download [training bag](https://drive.google.com/file/d/0B2_h37bMVw3iT0ZEdlF4N01QbHc) that was recorded on the Udacity self-driving car.
 2. Unzip the file
 ```bash
 unzip traffic_light_bag_file.zip

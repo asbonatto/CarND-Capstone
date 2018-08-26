@@ -19,14 +19,19 @@ from cfg import *
 from mobiledet.utils import utils
 from mobiledet.models.keras_yolo import yolo_eval, decode_yolo_output, create_model
 from keras import backend as K
+
 import time
 import tensorflow
 from keras.models import load_model
 
 STATE_COUNT_THRESHOLD = 3
+WAYPOINT_LOOKAHEAD = 100
+SAVE_IMAGE = False
+MOCK_TRAFFIC_LIGHTS = False
 
 
 class TLDetector(object):
+
     def __init__(self):
         rospy.init_node('tl_detector')
 
@@ -34,6 +39,9 @@ class TLDetector(object):
         self.waypoints = None
         self.camera_image = None
         self.lights = []
+
+        self.waypoints_2d = None
+        self.waypoint_tree = None
 
         sub1 = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
         sub2 = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
@@ -57,14 +65,15 @@ class TLDetector(object):
         # self.is_site = True
         self.ground_truth = False
 
+
         self.upcoming_red_light_pub = rospy.Publisher('/traffic_waypoint', Int32, queue_size=1)
 
         self.bridge = CvBridge()
         self.light_classifier = TLClassifier()
         self.listener = tf.TransformListener()
 
-        self.state = TrafficLight.UNKNOWN
-        self.last_state = TrafficLight.UNKNOWN
+        self.state = TrafficLight.RED
+        self.last_state = TrafficLight.RED
         self.last_wp = -1
         self.state_count = 0
 
@@ -119,6 +128,7 @@ class TLDetector(object):
 
         self.initialized = True
 
+
         rospy.spin()
 
     def pose_cb(self, msg):
@@ -141,6 +151,11 @@ class TLDetector(object):
             msg (Image): image from car-mounted camera
 
         """
+        # only process every 10th frame for performance
+        #self.image_counter = (self.image_counter + 1) % 10
+        #if self.image_counter == 0:
+        #    return
+
         self.has_image = True
         self.camera_image = msg
         light_wp, state = self.process_traffic_lights()
@@ -234,9 +249,8 @@ class TLDetector(object):
         Args:
             None
 
-        Returns:
-            int: ID of traffic light color (specified in styx_msgs/TrafficLight)
-                 UNKNOWN if not found
+
+            cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
 
         """
         # Lisa        styx_msgs/TrafficLight[] (uint8)
@@ -287,6 +301,7 @@ class TLDetector(object):
         # Return the state of the class with the highest probability (if any), UNKNOWN otherise
         return getstate[predicted_class]
 
+
     def process_traffic_lights(self):
         """Finds closest visible traffic light, if one exists, and determines its
             location and color
@@ -305,7 +320,15 @@ class TLDetector(object):
             # List of positions that correspond to the line to stop in front of for a given intersection
             stop_line_positions = self.config['stop_line_positions']
 
+
             car_position = self.get_closest_waypoint(self.pose.pose.position.x, self.pose.pose.position.y)
+        else:
+            return -1, TrafficLight.UNKNOWN
+
+        closest_light, distance, line_wp_idx = self.get_closest_light_in_front(car_position, stop_line_positions)
+
+        if closest_light and distance < WAYPOINT_LOOKAHEAD:
+            state = self.get_light_state(closest_light)
 
             diff = len(self.waypoints.waypoints)
             for i, light in enumerate(self.lights):
@@ -338,6 +361,7 @@ class TLDetector(object):
                     return line_wp_idx, state
 
         return -1, TrafficLight.UNKNOWN
+
 
 
 if __name__ == '__main__':
